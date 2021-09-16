@@ -542,12 +542,8 @@ namespace Client
         private System.Windows.Forms.Button connectButton;
         private System.Windows.Forms.TextBox endPointBox;
         private System.Windows.Forms.Label endPointLabel;
-        private System.Windows.Forms.ComboBox comboBox1;
-        private System.Windows.Forms.Label label2;
         private System.Windows.Forms.Label colorDepthLabel;
-        private System.Windows.Forms.ComboBox comboBox2;
         private System.Windows.Forms.Label FPSLabel;
-        private System.Windows.Forms.TextBox textBox2;
         private System.Windows.Forms.TextBox passwordBox;
         private System.Windows.Forms.Label passwordLabel;
         private System.Windows.Forms.ComboBox colorDepthBox;

@@ -89,7 +89,6 @@ namespace Server {
             this.endPointBox.Name = "endPointBox";
             this.endPointBox.Size = new System.Drawing.Size(184, 29);
             this.endPointBox.TabIndex = 1;
-            this.endPointBox.Text = "192.168.1.33:11000";
             // 
             // encryptedConnectionCheckBox
             // 

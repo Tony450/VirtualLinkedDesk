@@ -325,7 +325,8 @@ namespace Client {
 
         private void disconnectButtonClick(object sender, MouseEventArgs e) {
 
-            //this.Dispose();
+            sessionObjects.socketStream.Close();
+            this.Dispose();
 
         }
     }
@@ -453,22 +454,16 @@ namespace Client {
 
             while (bytesPending > 0) {
 
-                if (sessionObjects.networkManager.CanRead) {
-
-                    bytesRec = sessionObjects.networkManager.Read(buffer, offset, bytesPending);
-                    bytesPending -= bytesRec;
-                    offset += bytesRec;
-
-                }
+                bytesRec = sessionObjects.networkManager.Read(buffer, offset, bytesPending);
+                bytesPending = bytesPending - bytesRec;
+                offset = offset + bytesRec;
 
             }
 
         }
 
         private void send(ref byte[] buffer) {
-
             sessionObjects.networkManager.Write(buffer, 0, buffer.Length);
-
         }
 
 
@@ -481,6 +476,21 @@ namespace Client {
 
             Marshal.StructureToPtr(rct, pnt, false);
             InvalidateRect(hwnd, pnt, false);
+
+        }
+
+        private bool socketConnected (Socket socket) {
+
+            bool part1 = socket.Poll(1000, SelectMode.SelectRead);
+            bool part2 = (socket.Available == 0);
+
+            if (part1 && part2) {
+                return false;
+            }
+
+            else {
+                return true;
+            }
 
         }
 
@@ -525,48 +535,64 @@ namespace Client {
 
                     while (true) {
 
+                        try {
 
-                        receive(ref bufferImageSize, Constants.imageBytesEncodingSize);
-                        //NetworktoHostOrder
-                        int bitmapSize = BitConverter.ToInt32(bufferImageSize, 0);
+                            if (socketConnected(sessionObjects.socketStream)) {
 
-                        if (bitmapSize > 0 && bitmapSize <= 104857600) {                                                                //100 MB de tamaño maximo
+                                receive(ref bufferImageSize, Constants.imageBytesEncodingSize);
+                                //NetworktoHostOrder
+                                int bitmapSize = BitConverter.ToInt32(bufferImageSize, 0);
 
-                            byte[] buffer = new byte[bitmapSize];
-                            receive(ref buffer, bitmapSize);
+                                if (bitmapSize > 0 && bitmapSize <= 104857600) {                                                                //100 MB de tamaño maximo
 
-
-                            if (sessionObjects.inputParamneters.colorDepth == 0) {                                                      //Compresion
-
-                                MemoryStream memoryStream = new MemoryStream(buffer);                                                   //MemoryStream hereda de Stream
-                                sessionObjects.compressionBitmap = new System.Drawing.Bitmap(memoryStream);
-
-                            }
+                                    byte[] buffer = new byte[bitmapSize];
+                                    receive(ref buffer, bitmapSize);
 
 
-                            else {                                                                                                      //Sin compresion
+                                    if (sessionObjects.inputParamneters.colorDepth == 0) {                                                      //Compresion
 
-                                Span<byte> s;
-                                unsafe {
-                                    s = new Span<byte>(sessionObjects.bitmapOffScreen.getData().ToPointer(),
-                                        sessionObjects.bitmapOffScreen.getSize());
+                                        MemoryStream memoryStream = new MemoryStream(buffer);                                                   //MemoryStream hereda de Stream
+                                        sessionObjects.compressionBitmap = new System.Drawing.Bitmap(memoryStream);
+
+                                    }
+
+
+                                    else {                                                                                                      //Sin compresion
+
+                                        Span<byte> s;
+                                        unsafe {
+                                            s = new Span<byte>(sessionObjects.bitmapOffScreen.getData().ToPointer(),
+                                                sessionObjects.bitmapOffScreen.getSize());
+                                        }
+                                        MemoryExtensions.CopyTo(buffer, s);
+
+                                    }
+
+                                    invalidateWindow(sessionObjects.windowHandle);
+
                                 }
-                                MemoryExtensions.CopyTo(buffer, s);
 
+                                else {
+
+                                    showErrorMessage("Error interno", "Se ha producido un error en el protocolo");
+                                    sessionObjects.form.Invoke((Action)delegate {
+                                        sessionObjects.form.Dispose();
+                                    });
+                                    break;
+
+                                }
                             }
 
-                            invalidateWindow(sessionObjects.windowHandle);
+                            else {
+                                terminateConnection();
+                                break;
+                            }
 
                         }
 
-                        else {
-
-                            showErrorMessage("Error interno", "Se ha producido un error en el protocolo");
-                            sessionObjects.form.Invoke((Action)delegate {
-                                sessionObjects.form.Dispose();
-                            });
+                        catch (Exception exception) {
+                            terminateConnection();
                             break;
-
                         }
 
                     }
@@ -677,6 +703,18 @@ namespace Client {
 
         }
 
+        private void terminateConnection() {
+
+            showInformationMessage("Conexión terminada", "Se ha finzalizado la conexión de escritorio remoto");
+
+            if (!sessionObjects.form.IsDisposed) {
+                sessionObjects.form.Invoke((Action)delegate {
+                    sessionObjects.form.Dispose();
+                });
+            }
+
+        }
+
         public void sendQueuedEvents(Object obj) {
 
             sessionObjects = (SessionObjects)obj;
@@ -686,7 +724,18 @@ namespace Client {
                 byte[] buffer;
                 if (sessionObjects.requestsQueue.TryPeek(out buffer)) {                                                                 //Si hay operaciones pendientes...
                     if (sessionObjects.requestsQueue.TryDequeue(out buffer)) {
-                        send(ref buffer);
+
+                        try {
+
+                            if (socketConnected(sessionObjects.socketStream)) {
+                                send(ref buffer);
+                            }
+                        }
+
+                        catch (Exception exception) {
+                            terminateConnection();
+                            break;
+                        }
                     }
                 }
             }

@@ -121,7 +121,7 @@ namespace Server {
         private void aboutButtonClick(object sender, EventArgs e) {
 
             string caption = "VirtualLinkedDesk";
-            string message = "- Version: 1.0.0\n" +
+            string message = "- Version: 1.0.1\n" +
                 "- Commit: \n" +
                 "- License: Copyright (C) 2021 Antonio Manuel Hernández De\n   León, <tony450.vld@gmail.com>. Licensed under the " +
                 "GPL\n   license.";

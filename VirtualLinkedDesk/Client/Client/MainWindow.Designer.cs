@@ -77,7 +77,8 @@ namespace Client {
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
             this.BackColor = System.Drawing.SystemColors.ActiveCaptionText;
             this.ClientSize = new System.Drawing.Size(1264, 681);
-            this.Cursor = new System.Windows.Forms.Cursor("../../../Cursor/Cursor.ico");            //Cambiar la ruta al projecto de alguna manera
+            //this.Cursor = new System.Windows.Forms.Cursor("Cursor.ico");                  //Temporal
+            this.Cursor = new System.Windows.Forms.Cursor("../../../Images/Cursor/Cursor.ico");     
             this.Controls.Add(this.disconnectPseudoButton);
             this.Controls.Add(this.connectionNotSecureLabel);
             this.Icon = ((System.Drawing.Icon)(resources.GetObject("$this.Icon")));

@@ -60,11 +60,12 @@ namespace Server {
             sessionObjects.inputParamneters.endPoint = endPoint;
             sessionObjects.inputParamneters.encryptedConnection = encryptedConnection;
             sessionObjects.password = initPassword();
-            //sessionObjects.password = "0123456789";                             //TEMPORAL, CONTRASEÑA FIJADA
+            //sessionObjects.password = "0123456789";                           //Para pruebas
             sessionObjects.clientsConnected = 0;
             passwordBox.Text = sessionObjects.password;
 
             sessionObjects.form = this;
+            sessionObjects.socketsStream = new List<Socket>();
 
 
             initTimer();
@@ -152,13 +153,21 @@ namespace Server {
 
         unsafe private void captureScreen(Object source, System.Timers.ElapsedEventArgs e) {
 
+            try {
 
-            connectedClientsBox.Invoke((Action)delegate {
-                connectedClientsBox.Lines = sessionObjects.machineClientsName.ToArray();
-            });
+                if (!sessionObjects.form.IsDisposed) {
+                    connectedClientsBox.Invoke((Action)delegate {
+                        connectedClientsBox.Lines = sessionObjects.machineClientsName.ToArray();
+                    });
+                }
+
+            }
+
+            catch (Exception) {
+
+            }
 
             sessionObjects.bitmapScreen.copyTo(sessionObjects.bitmapOffScreen);
-
 
             if (sessionObjects.colorDepth == 0) {                                                                               //Compresion
 
@@ -217,7 +226,10 @@ namespace Server {
 
         private void disconnectButtonClick(object sender, EventArgs e) {
 
-            sessionObjects.socketStream.Close();
+            foreach (Socket socket in sessionObjects.socketsStream) {
+                socket.Close();
+            }
+
             this.Dispose();
 
         }
@@ -313,7 +325,6 @@ namespace Server {
 
                         if (colorDepth == 0 || colorDepth == 1 || colorDepth == 4 || colorDepth == 8 || colorDepth == 16 ||
                            colorDepth == 24 || colorDepth == 32) {
-
 
 
                             if (sessionObjects.clientsConnected == 0) {                                                         //Si es el unico cliente lo hago, si no no
@@ -510,55 +521,23 @@ namespace Server {
             SendInput(1, pInputs, sizeof(INPUT));
         }
 
-
-        unsafe private void terminateSession(ref byte[] buffer) {
-
-            networkManager.Close();
-            sessionObjects.clientsConnected--;
-            sessionObjects.machineClientsName.RemoveAt(clientId);
-            clientId--;
-
-            //Hilo muere
-
-            if (sessionObjects.clientsConnected == 0) {                                                                         //Destruir el bitmap, etc
-                sessionObjects.fpsTimer.Enabled = false;
-                sessionObjects.form.Invoke((Action)delegate {
-                    sessionObjects.form.Dispose();
-                });
-            }
-
-
-            //Tendras que acceder al formulario y destruirlo si no quedan clientes
-        }
-
         private void receive(ref byte[] buffer, int size) {
 
+            int bytesPending = size;
+            int offset = 0;
+            int bytesRec;
 
-            if (socketConnected(sessionObjects.socketStream)) {
+            while (bytesPending > 0) {
 
-                int bytesPending = size;
-                int offset = 0;
-                int bytesRec;
+                if (networkManager.CanRead) {
 
-                while (bytesPending > 0) {
-
-                    if (networkManager.CanRead) {
-
-                        bytesRec = ((Stream)networkManager).Read(buffer, offset, bytesPending);
-                        bytesPending -= bytesRec;
-                        offset += bytesRec;
-
-                    }
+                    bytesRec = ((Stream)networkManager).Read(buffer, offset, bytesPending);
+                    bytesPending = bytesPending - bytesRec;
+                    offset = offset + bytesRec;
 
                 }
 
             }
-
-            else {
-                string a = "Entro";
-            }
-
-
 
         }
 
@@ -569,83 +548,98 @@ namespace Server {
 
             void beginReceiveAsync () {
 
-                //if (networkManager.CanRead) {
+                try {
 
-                if (socketConnected(sessionObjects.socketStream)) {
-                    ((Stream)networkManager).BeginRead(buffer, 0, buffer.Length, new AsyncCallback(endReceiveAsync),
-                        ((Stream)networkManager));
+                    if (socketConnected(sessionObjects.socketsStream.ToArray()[clientId])) {
+                        ((Stream)networkManager).BeginRead(buffer, 0, buffer.Length, new AsyncCallback(endReceiveAsync),
+                            ((Stream)networkManager));
+                    }
+
                 }
 
-                //}
+                catch (Exception exception) {
+
+                    if (exception is IOException || exception is ObjectDisposedException) {
+                        //terminateConnection();
+                    }
+
+                }
 
             }
 
 
             void endReceiveAsync(IAsyncResult ar) {
 
-                if (networkManager.CanRead) {
-                    int bytesReaded = ((Stream)networkManager).EndRead(ar);
+                try {
+
+                    if (socketConnected(sessionObjects.socketsStream.ToArray()[clientId])) {
+
+                        int bytesReaded = ((Stream)networkManager).EndRead(ar);
+
+                        if (sessionObjects.allowControl) {
+
+                            switch (buffer[0]) {
+                                case 0:                                                                                                 //Evento KeyDown
+                                    executeKeyDownEvent(ref buffer);
+                                    break;
+                                case 1:                                                                                                 //Evento KeyUp
+                                    executeKeyUpEvent(ref buffer);
+                                    break;
+                                case 2:                                                                                                 //Evento MouseMove
+                                    executeMouseMoveEvent(ref buffer);
+                                    break;
+                                case 3:                                                                                                 //Evento MouseDown
+                                    executeMouseDownEvent(ref buffer);
+                                    break;
+                                case 4:                                                                                                 //Evento MouseUp
+                                    executeMouseUpEvent(ref buffer);
+                                    break;
+                                case 5:                                                                                                 //Evento MouseWheel
+                                    executeMouseWheelEvent(ref buffer);
+                                    break;
+                                default:
+                                    break;
+                            }
+
+                        }
+
+                        beginReceiveAsync();
+
+                    }
                 }
 
-                if (sessionObjects.allowControl) {
+                catch (Exception exception) {
 
-                    switch (buffer[0]) {
-                        case 0:                                                                                                 //Evento KeyDown
-                            executeKeyDownEvent(ref buffer);
-                            break;
-                        case 1:                                                                                                 //Evento KeyUp
-                            executeKeyUpEvent(ref buffer);
-                            break;
-                        case 2:                                                                                                 //Evento MouseMove
-                            executeMouseMoveEvent(ref buffer);
-                            break;
-                        case 3:                                                                                                 //Evento MouseDown
-                            executeMouseDownEvent(ref buffer);
-                            break;
-                        case 4:                                                                                                 //Evento MouseUp
-                            executeMouseUpEvent(ref buffer);
-                            break;
-                        case 5:                                                                                                 //Evento MouseWheel
-                            executeMouseWheelEvent(ref buffer);
-                            break;
-                        case 6:                                                                                                 //Desconexión
-                            terminateSession(ref buffer);
-                            break;
-                        default:
-                            break;
+                    if (exception is IOException || exception is ObjectDisposedException) {
+                        //terminateConnection();
                     }
 
                 }
 
-                beginReceiveAsync();
-
             }
 
         }
 
 
 
-        bool socketConnected(Socket s) {
-            bool part1 = s.Poll(1000, SelectMode.SelectRead);
-            bool part2 = (s.Available == 0);
-            if (part1 && part2)
+        private bool socketConnected(Socket socket) {
+
+            bool part1 = socket.Poll(1000, SelectMode.SelectRead);
+            bool part2 = (socket.Available == 0);
+
+            if (part1 && part2) {
                 return false;
-            else
+            }
+
+            else {
                 return true;
+            }
+
         }
 
 
         private void send(ref byte[] buffer) {
-
-
-            if (socketConnected(sessionObjects.socketStream)) {
-                ((Stream)networkManager).Write(buffer, 0, buffer.Length);
-            }
-
-            else {
-                string a = "Entro";
-            }
-
+            ((Stream)networkManager).Write(buffer, 0, buffer.Length);
         }
 
 
@@ -691,13 +685,39 @@ namespace Server {
 
                     while (true) {
 
-                        lock (sessionObjects.mutex) {
-                            Monitor.Wait(sessionObjects.mutex);
-                            //BitConverter.GetBytes(HostToNetworkOrder(memoryStream.Capacity)); 			//BIG ENDIAN
+                        try {
 
-                            byte[] imageSize = BitConverter.GetBytes(sessionObjects.buffer.Length);
-                            send(ref imageSize);
-                            send(ref sessionObjects.buffer);
+                            if (socketConnected(sessionObjects.socketsStream.ToArray()[clientId])) {
+
+                                lock (sessionObjects.mutex) {
+
+                                    Monitor.Wait(sessionObjects.mutex);
+                                    //BitConverter.GetBytes(HostToNetworkOrder(memoryStream.Capacity)); 			//BIG ENDIAN
+
+                                    byte[] imageSize = BitConverter.GetBytes(sessionObjects.buffer.Length);
+                                    send(ref imageSize);
+                                    send(ref sessionObjects.buffer);
+
+                                }
+
+                            }
+
+                            else {
+
+                                terminateConnection();
+                                break;
+
+                            }
+
+                        }
+
+                        catch (Exception exception) {
+
+                            if (exception is IOException || exception is ObjectDisposedException) {
+                                terminateConnection();
+                            }
+
+                            break;
 
                         }
 
@@ -707,6 +727,19 @@ namespace Server {
 
             }
 
+        }
+
+        private void terminateConnection() {
+
+            showInformationMessage("Conexión terminada", "Se ha finalizado la conexión de escritorio remoto");
+
+            if (!sessionObjects.form.IsDisposed) {
+                sessionObjects.form.Invoke((Action)delegate {
+                    sessionObjects.form.Dispose();
+                });
+            }
+
+            sessionObjects.fpsTimer.Enabled = false;
         }
 
 
@@ -801,7 +834,7 @@ namespace Server {
                     }
 
                     sessionObjects.networkManager = networkManager;
-                    sessionObjects.socketStream = conectionHandler;
+                    sessionObjects.socketsStream.Add(conectionHandler);
 
                     Thread serverThread = new Thread(new MyThread().mainFunctionality);
                     serverThread.Start(sessionObjects);
@@ -814,6 +847,10 @@ namespace Server {
 
         private void showErrorMessage(string caption, string message) {
             MessageBox.Show(message, caption, MessageBoxButtons.OK, MessageBoxIcon.Error);
+        }
+        
+        private void showInformationMessage(string caption, string message) {
+            MessageBox.Show(message, caption, MessageBoxButtons.OK, MessageBoxIcon.Information);
         }
     }
 
@@ -834,7 +871,7 @@ namespace Server {
         public byte clientsConnected;
         public bool allowControl = true;
         public MainWindow form;
-        public Socket socketStream;                                     //Cada hilo tiene que tener uno de ellos
+        public List<Socket> socketsStream;
     }
 
 

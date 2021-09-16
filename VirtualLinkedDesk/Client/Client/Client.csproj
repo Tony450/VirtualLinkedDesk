@@ -4,7 +4,7 @@
     <OutputType>WinExe</OutputType>
     <TargetFramework>net5.0-windows</TargetFramework>
     <UseWindowsForms>true</UseWindowsForms>
-    <ApplicationIcon>Logo\Logo.ico</ApplicationIcon>
+    <ApplicationIcon>Images\Logo\Logo.ico</ApplicationIcon>
     <AssemblyName>VirtualLinkedDesk Client</AssemblyName>
   </PropertyGroup>
 
