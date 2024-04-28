@@ -6,6 +6,8 @@ VirtualLinkedDesk is a remote desktop program that lets you control a machine fr
 
 Do you like technology? Are you a curious person who likes knowing how things in general work? Then, you will love this program. Remote desktop technology has left its footprint since computing first appeared, and nowadays, it continues evolving in different types of functionalities like Airplay, Chrome Cast, Windows 365, etc. From this moment on, you will have the possibility of understanding this technology if you download the source code of this program, it is very exciting, isn't it?. So, I invite you to do it, I hope you enjoy using it and seeing its structure as much as I have.
 
+This is the program that I created from scratch for my Computer Science Engineering Bachelor thesis. The corresponding document is [TFG_Antonio_Manuel_Hernandez_DeLeon_2021.pdf](Thesis/TFG_Antonio_Manuel_Hernandez_DeLeon_2021.pdf).
+
 ## Installation
 
 ### Installer file
@@ -39,17 +41,10 @@ Once you have everything prepared you have to follow the next steps:
 
 <!-- Instrucciones de uso en un futuro https://docs.github.com/es/communities/documenting-your-project-with-wikis/editing-wiki-content -->
 
-## About me
-
-Hi everyone, I am Antonio Manuel, a student about to end my studies of Computer Science Engineering at University Carlos III of Madrid. Since I was a child, I have always been passionate about technology, especially computing, and I spent an many hours in my free time researching the Internet for information relating to ICT (Information and Communication Technology) and also improving my skills with the computer. I have developed this project for my Bachelor's Degree Final Project, I am very happy and proud of the results, mainly because I love everything that is related to networks, cybersecurity and distributed programs, so I've really enjoyed the development process. 
-
-If you have any problems or want to ask me any questions don't hesitate to contact me at <tony450.vld@gmail.com>.
-
-
 ## License
 
 Copyright (C) Antonio Manuel Hernández De León.
 
 Licensed under the [GPL license](LICENSE.txt).
 
-Logo icon made by [Freepik](https://www.flaticon.com/authors/freepik) from [www.flaticon.com](https://www.flaticon.com/)
+Logo icon made by [Freepik](https://www.flaticon.com/authors/freepik) from [www.flaticon.com](https://www.flaticon.com/).

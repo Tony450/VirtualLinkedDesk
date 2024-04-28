@@ -102,7 +102,7 @@ namespace Client {
 
             if (sessionObjects.bitmapOffScreen != null) {
 
-                if (sessionObjects.inputParamneters.colorDepth == 0) {                                                                  //Compresion
+                if (sessionObjects.inputParamneters.colorDepth == 0) {                                                                  //Compression
 
                     if (sessionObjects.compressionBitmap != null) {
 
@@ -167,7 +167,7 @@ namespace Client {
 
             if (sessionObjects.bitmapOffScreen != null) {
                 if (insideEdges(e)) {
-                    handleMouseButtonEvent(e, 3);                                                                                       //Evento MouseDown
+                    handleMouseButtonEvent(e, 3);                                                                                       //MouseDown event
                 }
             }
 
@@ -177,7 +177,7 @@ namespace Client {
 
             if (sessionObjects.bitmapOffScreen != null) {
                 if (insideEdges(e)) {
-                    handleMouseButtonEvent(e, 4);                                                                                       //Evento MouseUp
+                    handleMouseButtonEvent(e, 4);                                                                                       //MouseUp event
                 }
             }
 
@@ -232,7 +232,7 @@ namespace Client {
                         sessionObjects.bitmapOffScreen.getHeight());
 
                     byte[] buffer = new byte[Constants.requestsSize];
-                    buffer[0] = 2;                                                                                                      //Evento MouseUp
+                    buffer[0] = 2;                                                                                                      //MouseUp event
 
                     Array.Copy(BitConverter.GetBytes(x), 0, buffer, 1, 2);
                     Array.Copy(BitConverter.GetBytes(y), 0, buffer, 3, 2);
@@ -252,10 +252,10 @@ namespace Client {
                 if (insideEdges(e)) {
 
                     byte[] buffer = new byte[Constants.requestsSize];
-                    buffer[0] = 5;                                                                                                      //Evento MouseWheel
+                    buffer[0] = 5;                                                                                                      //MouseWheel event
 
                     short delta = (short)e.Delta;
-                    Array.Copy(BitConverter.GetBytes(delta), 0, buffer, 1, 2);                                                          //Copiamos dos bytes ( de la poisicon 1 a 3)
+                    Array.Copy(BitConverter.GetBytes(delta), 0, buffer, 1, 2);                                                          //Copy two bytes (from position 1 to position 3)
 
                     sessionObjects.requestsQueue.Enqueue(buffer);
 
@@ -268,7 +268,7 @@ namespace Client {
 
         private Size computeImageSize(Size clientSize) {
 
-            double ratio = (double) sessionObjects.bitmapOffScreen.getWidth() / sessionObjects.bitmapOffScreen.getHeight();             //Siempre va a dar 1.778 (16/9)
+            double ratio = (double) sessionObjects.bitmapOffScreen.getWidth() / sessionObjects.bitmapOffScreen.getHeight();             //It always will be 1.778 (16/9)
             int w = (int)(ratio * clientSize.Height);
 
             if (w > clientSize.Width) {
@@ -280,7 +280,7 @@ namespace Client {
         }
 
 
-        private void handleResizeEvent(object sender, EventArgs e) {                                                                    //Cuando cambia el tamanio
+        private void handleResizeEvent(object sender, EventArgs e) {                                                                    //When the size is changed
 
             if (!sessionObjects.inputParamneters.encryptedConnection) {
                 connectionNotSecureLabel.Size = new Size(this.ClientSize.Width, 25);
@@ -341,24 +341,24 @@ namespace Client {
             byte[] buffer;
             bool correct = true;
 
-            buffer = new byte[sessionObjects.protocol.Length];                                                                          //Protocolo (Recibo)
+            buffer = new byte[sessionObjects.protocol.Length];                                                                          //Protocol (receive)
             receive(ref buffer, buffer.Length);
             string receivedProtocol = Encoding.ASCII.GetString(buffer, 0, buffer.Length);
             if (!String.Equals(sessionObjects.protocol, receivedProtocol)) {
                 correct = false;
             }
 
-            buffer = Encoding.ASCII.GetBytes(sessionObjects.protocol);                                                                  //Protocolo (Envio)
+            buffer = Encoding.ASCII.GetBytes(sessionObjects.protocol);                                                                  //Protocol (send)
             send(ref buffer);
 
-            buffer = Encoding.ASCII.GetBytes(sessionObjects.inputParamneters.password);                                                 //Contraseña (Envio)
+            buffer = Encoding.ASCII.GetBytes(sessionObjects.inputParamneters.password);                                                 //Password (send)
             send(ref buffer);
 
-            buffer = new byte[Constants.accessEncodingSize];                                                                            //Verificacion contraseña
+            buffer = new byte[Constants.accessEncodingSize];                                                                            //Password verification
             receive(ref buffer, buffer.Length);
 
 
-            if (buffer[0] == 0) {                                                                                                       //Contrasena incorrecta
+            if (buffer[0] == 0) {                                                                                                       //Incorrect password
 
                 showWarningMessage("Autenticación fallida", "La contraseña que has introducido es incorrecta");
                 sessionObjects.form.Invoke((Action)delegate {
@@ -378,13 +378,13 @@ namespace Client {
 
             if (handshake()) {
 
-                byte[] buffer = new byte[Constants.machineNameEncodingSize];                                                            //Longitud nombre maquina (Recibo)
+                byte[] buffer = new byte[Constants.machineNameEncodingSize];                                                            //Hostname length (receive)
                 receive(ref buffer, buffer.Length);
 
                 if (buffer[0] <= Constants.maxMachineNameLengh) {
 
                     buffer = new byte[buffer[0]];
-                    receive(ref buffer, buffer.Length);                                                                                 //Nombre maquina (Recibo)
+                    receive(ref buffer, buffer.Length);                                                                                 //Hostname (receive)
                     sessionObjects.machineServerName = Encoding.ASCII.GetString(buffer, 0, buffer.Length);
 
                     sessionObjects.form.Invoke((Action)delegate {
@@ -394,26 +394,26 @@ namespace Client {
                     sessionObjects.serverScreenDimensions = new ushort[2];
 
                     buffer = new byte[Constants.screenDimensionsEncodingSize];
-                    receive(ref buffer, buffer.Length);                                                                                 //Dimensiones pantalla
+                    receive(ref buffer, buffer.Length);                                                                                 //Screen dimentions
                     sessionObjects.serverScreenDimensions[0] = BitConverter.ToUInt16(buffer, 0);
                     receive(ref buffer, buffer.Length);
                     sessionObjects.serverScreenDimensions[1] = BitConverter.ToUInt16(buffer, 0);
 
                     if ((sessionObjects.serverScreenDimensions[0] > 200 && sessionObjects.serverScreenDimensions[0] < 7680) &&
-                        (sessionObjects.serverScreenDimensions[1] > 200 && sessionObjects.serverScreenDimensions[1] < 4320)) {          //Maximo resolucion 8k
+                        (sessionObjects.serverScreenDimensions[1] > 200 && sessionObjects.serverScreenDimensions[1] < 4320)) {          //Maximum resolution 8k
 
                         buffer = new byte[Constants.machineNameEncodingSize];
-                        buffer[0] = (byte)Environment.MachineName.Length;                                                               //Longitud nombre maquina (Envio)
+                        buffer[0] = (byte)Environment.MachineName.Length;                                                               //Hostname length (send)
                         send(ref buffer);
 
-                        buffer = Encoding.ASCII.GetBytes(Environment.MachineName);                                                      //Nombre maquina (Envio)
+                        buffer = Encoding.ASCII.GetBytes(Environment.MachineName);                                                      //Hostname (send)
                         send(ref buffer);
 
                         buffer = new byte[Constants.fpsEncodingSize];
                         buffer[0] = sessionObjects.inputParamneters.fps;                                                                //FPS
                         send(ref buffer);
 
-                        buffer[0] = sessionObjects.inputParamneters.colorDepth;                                                         //Profundidad de color
+                        buffer[0] = sessionObjects.inputParamneters.colorDepth;                                                         //Color depth
                         send(ref buffer);
 
                         return true;
@@ -543,21 +543,21 @@ namespace Client {
                                 //NetworktoHostOrder
                                 int bitmapSize = BitConverter.ToInt32(bufferImageSize, 0);
 
-                                if (bitmapSize > 0 && bitmapSize <= 104857600) {                                                                //100 MB de tamaño maximo
+                                if (bitmapSize > 0 && bitmapSize <= 104857600) {                                                                //Maximum size: 100 MB
 
                                     byte[] buffer = new byte[bitmapSize];
                                     receive(ref buffer, bitmapSize);
 
 
-                                    if (sessionObjects.inputParamneters.colorDepth == 0) {                                                      //Compresion
+                                    if (sessionObjects.inputParamneters.colorDepth == 0) {                                                      //Compression
 
-                                        MemoryStream memoryStream = new MemoryStream(buffer);                                                   //MemoryStream hereda de Stream
+                                        MemoryStream memoryStream = new MemoryStream(buffer);                                                   //MemoryStream inherits from Stream
                                         sessionObjects.compressionBitmap = new System.Drawing.Bitmap(memoryStream);
 
                                     }
 
 
-                                    else {                                                                                                      //Sin compresion
+                                    else {                                                                                                      //No compression
 
                                         Span<byte> s;
                                         unsafe {
@@ -661,7 +661,7 @@ namespace Client {
                             }
 
 
-                            if (problems) {                                                                                             //Si ha habido problemas...
+                            if (problems) {                                                                                             //If there were problems...
 
                                 string caption = "Problemas de autenticación encontrados";
 
@@ -722,7 +722,7 @@ namespace Client {
             while (true) {
 
                 byte[] buffer;
-                if (sessionObjects.requestsQueue.TryPeek(out buffer)) {                                                                 //Si hay operaciones pendientes...
+                if (sessionObjects.requestsQueue.TryPeek(out buffer)) {                                                                 //If there are pending operations...
                     if (sessionObjects.requestsQueue.TryDequeue(out buffer)) {
 
                         try {

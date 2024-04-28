@@ -35,7 +35,7 @@ namespace Client {
         private void connectButtonClick(object sender, EventArgs e) {
 
             //https://stackoverflow.com/questions/816566/how-do-you-get-the-current-project-directory-from-c-sharp-code-when-creating-a-c
-            //O buscar como poner un icono al raton
+            //Or search how to put an cursor icon
             //this.Hide();
 
             MainWindow mainWindow;
@@ -57,7 +57,7 @@ namespace Client {
 
                 if (passwordBox.Text != "") {
 
-                    if (!encryptedConnectionCheckBox.Checked) {                                                                             //Conexion no cifrada
+                    if (!encryptedConnectionCheckBox.Checked) {                                                                             //Non-encrypted connection
 
                         mainWindow = new MainWindow(endPoint, byte.Parse(fps), byte.Parse(colorDepth),
                             passwordBox.Text, encryptedConnectionCheckBox.Checked);
@@ -66,12 +66,12 @@ namespace Client {
 
                     }
 
-                    else {                                                                                                                  //Conexion cifrada
+                    else {                                                                                                                  //Encrypted connection
 
 
                         if (expectedCertificateNameBox.Text != "") {
 
-                            X509Certificate2 certificate = new X509Certificate2(certificateFilePath, passwordCertificateBox.Text);          //Si no se especifica contra que se hace aqui?
+                            X509Certificate2 certificate = new X509Certificate2(certificateFilePath, passwordCertificateBox.Text);          //If it is not specified here, which is the certified party here?
                             mainWindow = new MainWindow(endPoint, byte.Parse(fps), byte.Parse(colorDepth),
                                 passwordBox.Text, encryptedConnectionCheckBox.Checked, expectedCertificateNameBox.Text, certificate);
 
@@ -146,7 +146,7 @@ namespace Client {
 
         private void encryptedConnectionClick(object sender, MouseEventArgs e) {
 
-            if (encryptedConnectionCheckBox.Checked) {                                                                                      //Si no estaba checkeado
+            if (encryptedConnectionCheckBox.Checked) {                                                                                      //If it was not checked
 
                 serverHostNameLabel.ForeColor = System.Drawing.Color.White;
                 expectedCertificateNameBox.Enabled = true;

@@ -132,7 +132,7 @@ namespace Server {
 
         private void encryptedConnectionClick(object sender, MouseEventArgs e) {
 
-            if (encryptedConnectionCheckBox.Checked) {                                                                                  //Si no estaba checkeado
+            if (encryptedConnectionCheckBox.Checked) {                                                                                  //If it was not checked
 
                 certificateFileLabel.ForeColor = System.Drawing.Color.White;
                 selectCertificateButton.Enabled = true;

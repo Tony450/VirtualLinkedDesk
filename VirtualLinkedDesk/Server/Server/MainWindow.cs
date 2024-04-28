@@ -32,7 +32,7 @@ using System.IO;
 using System.Security.Cryptography.X509Certificates;
 using System.Security.Authentication;
 
-using BitmapLibrary;                                                                                                            //Biblioteca bitmap
+using BitmapLibrary;                                                                                                            //Bitmap library
 
 using Header;
 
@@ -60,7 +60,7 @@ namespace Server {
             sessionObjects.inputParamneters.endPoint = endPoint;
             sessionObjects.inputParamneters.encryptedConnection = encryptedConnection;
             sessionObjects.password = initPassword();
-            //sessionObjects.password = "0123456789";                           //Para pruebas
+            //sessionObjects.password = "0123456789";                           //For tests
             sessionObjects.clientsConnected = 0;
             passwordBox.Text = sessionObjects.password;
 
@@ -93,7 +93,7 @@ namespace Server {
 
                 for (int i = 0; i < numberOfItems; i++) {
 
-                    randomNumber = random.Next(source.Length);                                                                  //Menor que 10
+                    randomNumber = random.Next(source.Length);                                                                  //Less than 10
 
                     do {
                         randomPosition = random.Next(password.Length);
@@ -118,7 +118,7 @@ namespace Server {
             int random2;
             int random3;
 
-            do {                                                                                                                //Genera tres numeros aleatorios en el intervalo [2, 4] y que la suma de ellos sea 10.
+            do {                                                                                                                //It generates three random numbers in the interval [2, 4] and the addition of them must be 10.
 
                random1 = random.Next(2, 5);
                random2 = random.Next(2, 5);
@@ -138,8 +138,8 @@ namespace Server {
         private void initTimer() {
 
             sessionObjects.fpsTimer = new System.Timers.Timer();
-            sessionObjects.fpsTimer.Elapsed += captureScreen;                                                                   //El evento que desencadena es captureScreen
-            sessionObjects.fpsTimer.AutoReset = true;                                                                           //Dispare eventos repetitivos
+            sessionObjects.fpsTimer.Elapsed += captureScreen;                                                                   //The event that triggers is captureScreen
+            sessionObjects.fpsTimer.AutoReset = true;                                                                           //It triggers repetitive events
 
         }
 
@@ -169,28 +169,28 @@ namespace Server {
 
             sessionObjects.bitmapScreen.copyTo(sessionObjects.bitmapOffScreen);
 
-            if (sessionObjects.colorDepth == 0) {                                                                               //Compresion
+            if (sessionObjects.colorDepth == 0) {                                                                               //Compression
 
-                Image image = Image.FromHbitmap(sessionObjects.bitmapOffScreen.getHBitmap());                                   //Cambiar, en cada iteracion?
+                Image image = Image.FromHbitmap(sessionObjects.bitmapOffScreen.getHBitmap());                                   //Change it, each iteration?
                 System.Drawing.Bitmap compressionbitmap = new System.Drawing.Bitmap(image);
 
 
                 MemoryStream memoryStream = new MemoryStream();
                 compressionbitmap.Save(memoryStream, System.Drawing.Imaging.ImageFormat.Jpeg);
 
-                lock (sessionObjects.mutex) {                                                                                   //Exclusion mutua implicita
-                    sessionObjects.buffer = memoryStream.ToArray();                                                             //Escribimos en el buffer compartido
+                lock (sessionObjects.mutex) {                                                                                   //Implicit mutual exclusion
+                    sessionObjects.buffer = memoryStream.ToArray();                                                             //We write in the shared buffer
                     Monitor.PulseAll(sessionObjects.mutex);
                 }
 
             }
 
 
-            else {                                                                                                              //Sin compresion
+            else {                                                                                                              //No compression
 
-                lock (sessionObjects.mutex) {                                                                                   //Exclusion mutua implicita
+                lock (sessionObjects.mutex) {                                                                                   //Implicit mutual exclusion
 
-                    Marshal.Copy(sessionObjects.bitmapOffScreen.getData(), sessionObjects.buffer, 0,                            //Escribimos en el buffer compartido
+                    Marshal.Copy(sessionObjects.bitmapOffScreen.getData(), sessionObjects.buffer, 0,                            //We write in the shared buffer
                         sessionObjects.buffer.Length);
                     Monitor.PulseAll(sessionObjects.mutex);
 
@@ -248,16 +248,16 @@ namespace Server {
             byte[] buffer;
             bool correct = true;
 
-            buffer = Encoding.ASCII.GetBytes(sessionObjects.protocol);                                                          //Protocolo (Envio)
+            buffer = Encoding.ASCII.GetBytes(sessionObjects.protocol);                                                          //Protocol (send)
             send(ref buffer);
 
-            receive(ref buffer, buffer.Length);                                                                                 //Protocolo (Recibo)
+            receive(ref buffer, buffer.Length);                                                                                 //Protocol (receive)
             string receivedProtocol = Encoding.ASCII.GetString(buffer, 0, buffer.Length);
             if (!String.Equals(sessionObjects.protocol, receivedProtocol)) {
                 correct = false;
             }
 
-            buffer = new byte[Constants.passwordLength];                                                                        //Contrasenia
+            buffer = new byte[Constants.passwordLength];                                                                        //Password
             receive(ref buffer, buffer.Length);
             string receivedPassword = Encoding.ASCII.GetString(buffer, 0, buffer.Length);
 
@@ -265,14 +265,14 @@ namespace Server {
 
             if (!String.Equals(sessionObjects.password, receivedPassword)) {
                 correct = false;
-                buffer[0] = 0;                                                                                                  //Incorrecta
+                buffer[0] = 0;                                                                                                  //Incorrect
             }
 
             else {
-                buffer[0] = 1;                                                                                                  //Correcta
+                buffer[0] = 1;                                                                                                  //Correct
             }
 
-            send(ref buffer);                                                                                                   //Verificacion contraseña
+            send(ref buffer);                                                                                                   //Password verification
 
             return correct;
 
@@ -283,35 +283,35 @@ namespace Server {
             if (handshake()) {
 
                 byte[] buffer = new byte[Constants.machineNameEncodingSize];
-                buffer[0] = (byte)Environment.MachineName.Length;                                                               //Longitud nombre maquina (Envio)
+                buffer[0] = (byte)Environment.MachineName.Length;                                                               //Hostname length (send)
                 send(ref buffer);
 
-                buffer = Encoding.ASCII.GetBytes(Environment.MachineName);                                                      //Nombre maquina (Envio)
+                buffer = Encoding.ASCII.GetBytes(Environment.MachineName);                                                      //Hostname (send)
                 send(ref buffer);
 
                 if (sessionObjects.clientsConnected == 0) {
 
-                    sessionObjects.bitmapScreen = new BitmapScreen();                                                           //Creamos bitmap de la pantalla
+                    sessionObjects.bitmapScreen = new BitmapScreen();                                                           //We create the screen bitmap
                     sessionObjects.machineClientsName = new List<string>();
 
                 }
 
-                buffer = BitConverter.GetBytes(sessionObjects.bitmapScreen.getWidth());                                         //Dimensiones pantalla
+                buffer = BitConverter.GetBytes(sessionObjects.bitmapScreen.getWidth());                                         //Screen dimentions
                 send(ref buffer);
                 buffer = BitConverter.GetBytes(sessionObjects.bitmapScreen.getHeight());
                 send(ref buffer);
 
 
-                buffer = new byte[Constants.machineNameEncodingSize];                                                           //Longitud nombre maquina (Recibo)
+                buffer = new byte[Constants.machineNameEncodingSize];                                                           //Hostname (receive)
                 receive(ref buffer, buffer.Length);
 
 
                 if (buffer[0] <= Constants.maxMachineNameLength) {
 
                     buffer = new byte[buffer[0]];
-                    receive(ref buffer, buffer.Length);                                                                         //Nombre maquina (Recibo)
+                    receive(ref buffer, buffer.Length);                                                                         //Hostname (receive)
 
-                    sessionObjects.machineClientsName.Add(Encoding.ASCII.GetString(buffer, 0, buffer.Length));                  //Aniadimos nombre cliente
+                    sessionObjects.machineClientsName.Add(Encoding.ASCII.GetString(buffer, 0, buffer.Length));                  //We add the client name
 
                     receive(ref buffer, Constants.fpsEncodingSize);                                                             //FPS
                     byte fps = buffer[0];
@@ -319,7 +319,7 @@ namespace Server {
 
                     if (fps == 5 || fps == 10 || fps == 15 || fps == 20 || fps == 25) {
 
-                        receive(ref buffer, Constants.colorDepthEncodingSize);                                                 //Profundidad de color
+                        receive(ref buffer, Constants.colorDepthEncodingSize);                                                 //Color depth
                         byte colorDepth = buffer[0];
 
 
@@ -327,31 +327,31 @@ namespace Server {
                            colorDepth == 24 || colorDepth == 32) {
 
 
-                            if (sessionObjects.clientsConnected == 0) {                                                         //Si es el unico cliente lo hago, si no no
+                            if (sessionObjects.clientsConnected == 0) {                                                         //If it is the only client I do it, otherwise I don't
 
-                                sessionObjects.fps = fps;                                                                       //Los fps de imagenes la fija tambien el primer cliente
+                                sessionObjects.fps = fps;                                                                       //FPS are set by the first client
                                 sessionObjects.fpsTimer.Interval = 1000 / fps;                                                  //1000 ms = 1 fps, 500 ms = 2 fps, 200 ms = 5 fps, 100 ms = 10 fps, 66 ms = 15 fps, 50 ms = 20 fps, 40 ms = 25 fps
 
                                 sessionObjects.colorDepth = colorDepth;
 
-                                if (sessionObjects.colorDepth == 0) {                                                           //0 significa que quiere compresion y que por lo tanto es 24
+                                if (sessionObjects.colorDepth == 0) {                                                           //0 means that compression is set, consequently it is 24
                                     colorDepth = 24;
                                 }
 
                                 sessionObjects.bitmapOffScreen = new BitmapOffScreen(sessionObjects.bitmapScreen.getWidth(),
                                     sessionObjects.bitmapScreen.getHeight(), colorDepth);
 
-                                if (sessionObjects.colorDepth != 0) {                                                           //Si no hay compresion...
-                                    sessionObjects.buffer = new byte[sessionObjects.bitmapOffScreen.getSize()];                 //El buffer siempre sera del mismo tamaño
+                                if (sessionObjects.colorDepth != 0) {                                                           //If no compression...
+                                    sessionObjects.buffer = new byte[sessionObjects.bitmapOffScreen.getSize()];                 //The buffer will always have the same size
                                 }
 
                                 sessionObjects.mutex = new Object();
-                                sessionObjects.fpsTimer.Enabled = true;                                                         //Comenzamos evento de tiempo
+                                sessionObjects.fpsTimer.Enabled = true;                                                         //We start the time event
 
                             }
 
                             clientId = sessionObjects.clientsConnected;
-                            sessionObjects.clientsConnected++;                                                                  //Hacerlo atomicamente con Interlocked.Increment
+                            sessionObjects.clientsConnected++;                                                                  //Automate it with Interlocked.Increment
 
                             return true;
 
@@ -461,11 +461,11 @@ namespace Server {
                     break;
                 case 3:
                     pInputs[0].U.mi.dwFlags = MOUSEEVENTF.XDOWN;
-                    pInputs[0].U.mi.mouseData = 0X0001;                                                                         //Poner en una estructura
+                    pInputs[0].U.mi.mouseData = 0X0001;                                                                         //Put it inside a structure
                     break;
                 case 4:
                     pInputs[0].U.mi.dwFlags = MOUSEEVENTF.XDOWN;
-                    pInputs[0].U.mi.mouseData = 0X0002;                                                                         //Poner en una estructura
+                    pInputs[0].U.mi.mouseData = 0X0002;                                                                         //Put it inside a structure
                     break;
                 default:
                     break;
@@ -491,11 +491,11 @@ namespace Server {
                     break;
                 case 3:
                     pInputs[0].U.mi.dwFlags = MOUSEEVENTF.XUP;
-                    pInputs[0].U.mi.mouseData = 0X0001;                                                                         //Poner en una estructura
+                    pInputs[0].U.mi.mouseData = 0X0001;                                                                         //Put it inside a structure
                     break;
                 case 4:
                     pInputs[0].U.mi.dwFlags = MOUSEEVENTF.XUP;
-                    pInputs[0].U.mi.mouseData = 0X0002;                                                                         //Poner en una estructura
+                    pInputs[0].U.mi.mouseData = 0X0002;                                                                         //Put it inside a structure
                     break;
                 default:
                     break;
@@ -579,22 +579,22 @@ namespace Server {
                         if (sessionObjects.allowControl) {
 
                             switch (buffer[0]) {
-                                case 0:                                                                                                 //Evento KeyDown
+                                case 0:                                                                                                 //KeyDown event
                                     executeKeyDownEvent(ref buffer);
                                     break;
-                                case 1:                                                                                                 //Evento KeyUp
+                                case 1:                                                                                                 //KeyUp event
                                     executeKeyUpEvent(ref buffer);
                                     break;
-                                case 2:                                                                                                 //Evento MouseMove
+                                case 2:                                                                                                 //MouseMove event
                                     executeMouseMoveEvent(ref buffer);
                                     break;
-                                case 3:                                                                                                 //Evento MouseDown
+                                case 3:                                                                                                 //MouseDown event
                                     executeMouseDownEvent(ref buffer);
                                     break;
-                                case 4:                                                                                                 //Evento MouseUp
+                                case 4:                                                                                                 //MouseUp event
                                     executeMouseUpEvent(ref buffer);
                                     break;
-                                case 5:                                                                                                 //Evento MouseWheel
+                                case 5:                                                                                                 //MouseWheel event
                                     executeMouseWheelEvent(ref buffer);
                                     break;
                                 default:
@@ -804,7 +804,7 @@ namespace Server {
                                     message = string.Concat(message, "- El otro extremo no ha suministrado su certificado");
                                 }
 
-                                if (problems) {                                                                                 //Si ha habido problemas...
+                                if (problems) {                                                                                 //If there were problems...
 
                                     string caption = "Problemas de autenticación encontrados";
 
